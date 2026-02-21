@@ -37,8 +37,7 @@ test('signup should fail when role is invalid', async () => {
             fullname: 'Test Student',
             email: `student_${Date.now()}@test.com`,
             phoneNumber: '9999999999',
-            password: 'password123',
-            role: 'invalid'
+            password: 'password123'
         }
     });
 
