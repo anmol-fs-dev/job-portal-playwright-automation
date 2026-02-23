@@ -19,6 +19,8 @@ test('recruiter login should return 200 and token cookie', async () => {
 });
 
 
+// login should fail with wrong credentials
+
 test('login should fail with wrong password', async () => {
 
     const api = await createAPIContext();
@@ -38,3 +40,5 @@ test('login should fail with wrong password', async () => {
 
     await api.dispose();
 });
+
+
