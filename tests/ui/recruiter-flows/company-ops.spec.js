@@ -1,30 +1,48 @@
 import { test, expect } from '@playwright/test';
 import { users } from '../../../test-data/users';
+import { LoginPage } from '../../../pages/LoginPage';
+import { AdminCompaniesPage } from '../../../pages/AdminCompaniesPage';
+import { CompanyCreatePage } from '../../../pages/CompanyCreatePage';
+import { CompanySetupPage } from '../../../pages/CompanySetupPage';
 
-// User should be able to login using valid user credentials
+/**
+ * Recruiter Flows: End-to-end tests for recruiter actions.
+ * This test verifies the full flow from login to company creation and setup.
+ */
+
 test('user should be able to login successfully', async ({ page }) => {
-    await page.goto('/login');
-    await page.fill('input[name="email"]', users.recruiter.email);
-    await page.fill('input[name="password"]', users.recruiter.password);
-    await page.locator(`input[value="${users.recruiter.role}"]`).click();
+    // 1. Initialize all required Page Objects
+    const loginPage = new LoginPage(page);
+    const adminCompaniesPage = new AdminCompaniesPage(page);
+    const companyCreatePage = new CompanyCreatePage(page);
+    const companySetupPage = new CompanySetupPage(page);
 
-    await page.click('button[type="submit"]');
+    // 2. Login as a recruiter
+    await loginPage.navigate();
+    await loginPage.login(users.recruiter.email, users.recruiter.password, users.recruiter.role);
+
+    // 3. Verify landing on the Admin Companies dashboard
     await expect(page).toHaveURL('admin/companies');
 
+    // 4. Start the New Company creation flow
     const uniqueCompanyName = `Test Company Name ${Date.now()}`;
-    await page.getByText('New Company').click();
-    await expect(page.getByText('Your Comapny Name')).toBeVisible();
-    await page.fill('input[placeholder="Jobhunt, Microsoft etc."]', uniqueCompanyName);
-    await page.getByText('Continue').click();
+    await adminCompaniesPage.clickNewCompany();
 
+    // 5. Assert presence of company name field and fill it
+    await expect(page.getByText('Your Comapny Name')).toBeVisible();
+    await companyCreatePage.enterCompanyName(uniqueCompanyName);
+    await companyCreatePage.clickContinue();
+
+    // 6. Verify moving to Step 2: Company Setup
     await expect(page.getByText('Company Setup')).toBeVisible();
 
-    await page.fill('input[name="description"]', "This is a test company description");
-    await page.fill('input[name="website"]', "https://www.google.com");
-    await page.fill('input[name="location"]', "Random Location");
-    await page.click('button[type="submit"]');
+    // 7. Complete the company details form
+    await companySetupPage.setupCompany({
+        description: "This is a test company description",
+        website: "https://www.google.com",
+        location: "Random Location"
+    });
 
+    // 8. Assert that the user is redirected back to the companies list after success
     await expect(page).toHaveURL('admin/companies');
 });
-
-
